@@ -1,0 +1,41 @@
+name: Daily tool build
+
+on:
+  schedule:
+    - cron: "0 1 * * *"   # 06:30 IST — GitHub Actions cron runs in UTC
+  workflow_dispatch: {}    # lets you trigger a run by hand while testing
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45   # a stuck run should never eat the whole day
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install project deps
+        run: npm ci
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Configure git identity for the commit
+        run: |
+          git config user.name "tool-factory-bot"
+          git config user.email "bot@yourdomain.com"
+
+      - name: Run the daily pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+        run: npx tsx scripts/daily-pipeline.ts build
