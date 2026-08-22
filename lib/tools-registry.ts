@@ -11,14 +11,14 @@ export type Tool = {
 // The homepage, app/sitemap.ts, and each tool's "related tools" section
 // all read from this one list — nothing else should hardcode tool metadata.
 export const tools: Tool[] = [
-  // {
-  //   slug: "file-size-reducer",
-  //   title: "File Size Reducer",
-  //   oneLiner: "Drop any file, get three smaller versions instantly.",
-  //   day: 1,
-  //   live: true,
-  //   relatedSlugs: [],
-  // },
+  {
+    slug: "file-size-reducer",
+    title: "File Size Reducer",
+    oneLiner: "Drop an image, get three smaller versions instantly.",
+    day: 1,
+    live: true,
+    relatedSlugs: [], // first tool shipped — nothing to cross-link to yet
+  },
 ];
 
 export const TOTAL_DAYS = 30;
