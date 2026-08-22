@@ -29,7 +29,7 @@ function askClaude(prompt: string, opts: { allowedTools?: string; maxTurns?: num
   const args = [
     "-p", prompt,
     "--output-format", "json",
-    "--bare",
+    "--effort", "high",
     "--max-turns", String(opts.maxTurns ?? 1),
   ];
   // Text-only calls (drafting a brief, drafting social copy) get no tool
@@ -38,7 +38,15 @@ function askClaude(prompt: string, opts: { allowedTools?: string; maxTurns?: num
   if (opts.allowedTools) {
     args.push("--allowedTools", opts.allowedTools, "--permission-mode", "acceptEdits");
   }
-  const result = spawnSync("claude", args, { encoding: "utf-8", stdio: ["inherit", "pipe", "inherit"] });
+  // --effort pins a level valid for non-thinking models, overriding a
+  // personal ~/.claude/settings.json effortLevel (e.g. "xhigh") that would
+  // otherwise 400 here. --bare is skipped: on at least one CLI version it
+  // breaks subscription-login auth resolution for `-p` specifically.
+  const result = spawnSync("claude", args, {
+    encoding: "utf-8",
+    stdio: ["inherit", "pipe", "inherit"],
+    env: { ...process.env, CLAUDE_CODE_EFFORT_LEVEL: "high" },
+  });
   if (result.error) {
     throw new Error(`claude -p failed to spawn: ${result.error.message}`);
   }
