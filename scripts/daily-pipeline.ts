@@ -32,11 +32,14 @@ function askClaude(prompt: string, opts: { allowedTools?: string; maxTurns?: num
     "--effort", "high",
     "--max-turns", String(opts.maxTurns ?? 1),
   ];
-  // Text-only calls (drafting a brief, drafting social copy) get no tool
-  // access at all. Only the build step, which actually edits files, needs
-  // --allowedTools and acceptEdits so it doesn't hang waiting for approval.
+  // Text-only calls (drafting a brief, drafting social copy) get --tools ""
+  // so it can't reach for a tool and burn a turn deciding not to. Only the
+  // build step, which actually edits files, needs --allowedTools and
+  // acceptEdits so it doesn't hang waiting for approval.
   if (opts.allowedTools) {
     args.push("--allowedTools", opts.allowedTools, "--permission-mode", "acceptEdits");
+  } else {
+    args.push("--tools", "");
   }
   // --effort pins a level valid for non-thinking models, overriding a
   // personal ~/.claude/settings.json effortLevel (e.g. "xhigh") that would
