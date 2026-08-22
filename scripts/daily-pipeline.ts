@@ -18,10 +18,32 @@
 
 import { execSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
-import Anthropic from "@anthropic-ai/sdk";
 
 const IDEAS_PATH = "ideas.json";
-const anthropic = new Anthropic(); // reads ANTHROPIC_API_KEY from env
+
+// One call site for every "ask Claude for text back" step. Runs through the
+// `claude` CLI (not the SDK) so it rides your subscription login locally —
+// ANTHROPIC_API_KEY is only required where there's no browser to log in
+// with, i.e. the unattended GitHub Actions cron.
+function askClaude(prompt: string, opts: { allowedTools?: string; maxTurns?: number } = {}): string {
+  const args = [
+    "-p", prompt,
+    "--output-format", "json",
+    "--bare",
+    "--max-turns", String(opts.maxTurns ?? 1),
+  ];
+  // Text-only calls (drafting a brief, drafting social copy) get no tool
+  // access at all. Only the build step, which actually edits files, needs
+  // --allowedTools and acceptEdits so it doesn't hang waiting for approval.
+  if (opts.allowedTools) {
+    args.push("--allowedTools", opts.allowedTools, "--permission-mode", "acceptEdits");
+  }
+  const result = spawnSync("claude", args, { encoding: "utf-8", stdio: ["inherit", "pipe", "inherit"] });
+  if (result.status !== 0) {
+    throw new Error("claude -p failed — check the job log");
+  }
+  return JSON.parse(result.stdout).result as string;
+}
 
 // ---------- idea storage (ideas.json in the repo — see ideas.schema.md) ----------
 
@@ -72,13 +94,7 @@ async function markBuilt(id: number, prUrl: string) {
 
 async function draftBrief(idea: Idea): Promise<string> {
   const houseStyle = readFileSync("prompts/house-style.md", "utf-8");
-  const msg = await anthropic.messages.create({
-    model: "claude-sonnet-5",
-    max_tokens: 1200,
-    messages: [
-      {
-        role: "user",
-        content: `${houseStyle}
+  return askClaude(`${houseStyle}
 
 Today's raw idea
 Title: ${idea.title}
@@ -88,11 +104,7 @@ Notes: ${idea.notes || "(none)"}
 Expand this into a build brief: target user in one sentence, exactly 3
 must-have features, exactly 2 explicit non-goals, a URL slug, 5 target
 long-tail keywords, a <title> under 60 characters, and a meta description
-under 160 characters. Keep it tight — the whole point is this ships today.`,
-      },
-    ],
-  });
-  return msg.content.map((b) => (b.type === "text" ? b.text : "")).join("\n");
+under 160 characters. Keep it tight — the whole point is this ships today.`);
 }
 
 // ---------- step 2: build it with Claude Code ----------
@@ -109,29 +121,10 @@ ${brief}
 Build this now. Add it under app/tools/${slug}/, register it in
 lib/tools-registry.ts, and confirm \`npm run build\` passes before you finish.`;
 
-  // Flags verified against Claude Code's own docs (code.claude.com/docs/en/headless):
-  //  -p                     run non-interactively, print the result, exit
-  //  --allowedTools         scope exactly what it can touch — never a blanket grant
-  //  --permission-mode      acceptEdits so it doesn't hang waiting for approval
-  //  --output-format json   structured result your script can branch on
-  //  --bare                 skip hook/skill auto-discovery — same behavior every CI run
-  //  --max-turns            cost/runaway cap, same idea as the step ceiling on your
-  //                         job-application agent
-  const result = spawnSync(
-    "claude",
-    [
-      "-p", prompt,
-      "--allowedTools", "Edit,Bash",
-      "--permission-mode", "acceptEdits",
-      "--output-format", "json",
-      "--bare",
-      "--max-turns", "60",
-    ],
-    { stdio: "inherit" }
-  );
-  if (result.status !== 0) {
-    throw new Error("Claude Code build failed — check the job log");
-  }
+  // --allowedTools scopes exactly what it can touch — never a blanket grant.
+  // --max-turns 60 is the cost/runaway cap, same idea as the step ceiling on
+  // your job-application agent.
+  askClaude(prompt, { allowedTools: "Edit,Bash", maxTurns: 60 });
 
   execSync(`git push -u origin ${branch}`, { stdio: "inherit" });
   const pr = spawnSync(
@@ -152,14 +145,7 @@ lib/tools-registry.ts, and confirm \`npm run build\` passes before you finish.`;
 
 async function announce(slug: string, liveUrl: string) {
   const socialPrompt = readFileSync("prompts/social-copy.md", "utf-8");
-  const msg = await anthropic.messages.create({
-    model: "claude-sonnet-5",
-    max_tokens: 800,
-    messages: [
-      { role: "user", content: `${socialPrompt}\n\nTool: ${slug}\nLive at: ${liveUrl}` },
-    ],
-  });
-  const text = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("\n");
+  const text = askClaude(`${socialPrompt}\n\nTool: ${slug}\nLive at: ${liveUrl}`);
   console.log(text);
 }
 

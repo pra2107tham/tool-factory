@@ -46,14 +46,16 @@ Repo → Settings → Secrets and variables → Actions → New repository secre
 |---|---|
 | `ANTHROPIC_API_KEY` | console.anthropic.com |
 
-`GITHUB_TOKEN` needs nothing from you — GitHub provides it automatically for every run, and the workflow already requests the right permissions for it.
+Only needed in CI — GitHub Actions has no browser to run `claude auth login`, so the pipeline authenticates via this key there. `GITHUB_TOKEN` needs nothing from you either way — GitHub provides it automatically for every run, and the workflow already requests the right permissions for it.
 
 ## 6. Dry run before you trust the cron
 
+The pipeline calls the `claude` CLI, not the raw API, so locally it rides whatever you're already logged in with — your Claude subscription is enough, no key needed on your machine:
+
 ```
 npm install -g @anthropic-ai/claude-code
+claude auth login   # skip if `claude` is already logged in
 gh auth login
-export ANTHROPIC_API_KEY=...
 npx tsx scripts/daily-pipeline.ts build
 ```
 
