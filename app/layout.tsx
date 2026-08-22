@@ -22,10 +22,11 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
 });
 
-// TODO: swap in the real domain once you've picked one — this affects
-// every absolute URL Next.js generates for metadata, OG images, and the sitemap.
+// Using the Vercel URL until a real domain is picked — swap here (and in
+// sitemap.ts / robots.ts) once one is, this affects every absolute URL
+// Next.js generates for metadata, OG images, and the sitemap.
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yourdomain.com"),
+  metadataBase: new URL("https://tool-factory-lac.vercel.app"),
   title: {
     default: "Tool Factory — one small tool, shipped every day",
     template: "%s — Tool Factory",

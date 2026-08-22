@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { liveTools } from "@/lib/tools-registry";
 
-// TODO: replace once the domain is live
-const BASE_URL = "https://yourdomain.com";
+// Using the Vercel URL until a real domain is picked
+const BASE_URL = "https://tool-factory-lac.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const toolEntries: MetadataRoute.Sitemap = liveTools().map((tool) => ({
