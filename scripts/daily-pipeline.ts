@@ -39,10 +39,21 @@ function askClaude(prompt: string, opts: { allowedTools?: string; maxTurns?: num
     args.push("--allowedTools", opts.allowedTools, "--permission-mode", "acceptEdits");
   }
   const result = spawnSync("claude", args, { encoding: "utf-8", stdio: ["inherit", "pipe", "inherit"] });
-  if (result.status !== 0) {
-    throw new Error("claude -p failed — check the job log");
+  if (result.error) {
+    throw new Error(`claude -p failed to spawn: ${result.error.message}`);
   }
-  return JSON.parse(result.stdout).result as string;
+  let parsed: { is_error?: boolean; result?: string };
+  try {
+    parsed = JSON.parse(result.stdout);
+  } catch {
+    throw new Error(
+      `claude -p exited ${result.status}, non-JSON output:\n${result.stdout}`
+    );
+  }
+  if (result.status !== 0 || parsed.is_error) {
+    throw new Error(`claude -p failed: ${parsed.result ?? result.stdout}`);
+  }
+  return parsed.result as string;
 }
 
 // ---------- idea storage (ideas.json in the repo — see ideas.schema.md) ----------
