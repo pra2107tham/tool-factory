@@ -3,74 +3,74 @@
  * Tool Factory daily pipeline.
  *
  * Two modes:
- *   build     — cron-triggered. Picks the next un-built idea from the sheet,
+ *   build     — cron-triggered. Picks the next un-built idea from ideas.json,
  *               drafts a build brief, runs Claude Code on a new branch, and
  *               opens a PR.
  *   announce  — you run this by hand once a tool is live in production.
  *               Drafts X + LinkedIn posts and prints/writes them for you.
  *
- * This is a skeleton. Fill in the TODOs (sheet column mapping matches the
- * schema in ARCHITECTURE.md) and run this locally once before you let the
- * cron run it unattended:
+ * Ideas live in ideas.json (repo-tracked — see the schema there), not a
+ * Google Sheet: one file, no service account, no sharing to manage. Run this
+ * locally once before you let the cron run it unattended:
  *
  *   npx tsx scripts/daily-pipeline.ts build
  */
 
-import { google } from "googleapis";
 import { execSync, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 
-const SHEET_ID = process.env.SHEET_ID!;
+const IDEAS_PATH = "ideas.json";
 const anthropic = new Anthropic(); // reads ANTHROPIC_API_KEY from env
 
-// ---------- sheet access ----------
+// ---------- idea storage (ideas.json in the repo — see ideas.schema.md) ----------
 
-async function sheetsClient() {
-  const auth = new google.auth.GoogleAuth({
-    credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY!),
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-  return google.sheets({ version: "v4", auth });
-}
-
-type IdeaRow = {
-  rowIndex: number; // 1-based sheet row, needed to write status back
+type Idea = {
+  id: number;
   title: string;
   oneLiner: string;
   notes: string;
+  built: "Y" | "N";
+  prUrl: string;
+  merged: "Y" | "N";
+  deployed: "Y" | "N";
+  liveUrl: string;
+  shippedSocial: "Y" | "N";
+  dateBuilt: string;
+  dateShipped: string;
 };
 
-async function getNextIdea(): Promise<IdeaRow | null> {
-  const sheets = await sheetsClient();
-  const { data } = await sheets.spreadsheets.values.get({
-    spreadsheetId: SHEET_ID,
-    range: "Ideas!A2:E", // columns: id | title | one_liner | notes | built
-  });
-  const rows = data.values ?? [];
-  for (let i = 0; i < rows.length; i++) {
-    const [, title, oneLiner, notes, built] = rows[i];
-    if ((built ?? "N").trim().toUpperCase() !== "Y") {
-      return { rowIndex: i + 2, title, oneLiner, notes: notes ?? "" };
-    }
-  }
-  return null;
+function readIdeas(): Idea[] {
+  return JSON.parse(readFileSync(IDEAS_PATH, "utf-8"));
 }
 
-async function markBuilt(rowIndex: number, prUrl: string) {
-  const sheets = await sheetsClient();
-  // built = column E, pr_url = column F
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: SHEET_ID,
-    range: `Ideas!E${rowIndex}:F${rowIndex}`,
-    valueInputOption: "RAW",
-    requestBody: { values: [["Y", prUrl]] },
+function writeIdeas(ideas: Idea[]) {
+  writeFileSync(IDEAS_PATH, JSON.stringify(ideas, null, 2) + "\n");
+}
+
+async function getNextIdea(): Promise<Idea | null> {
+  const ideas = readIdeas();
+  return ideas.find((i) => i.built !== "Y") ?? null;
+}
+
+async function markBuilt(id: number, prUrl: string) {
+  const ideas = readIdeas();
+  const idea = ideas.find((i) => i.id === id);
+  if (!idea) throw new Error(`ideas.json: no idea with id ${id}`);
+  idea.built = "Y";
+  idea.prUrl = prUrl;
+  idea.dateBuilt = new Date().toISOString().slice(0, 10);
+  writeIdeas(ideas);
+  // Commit the status update directly — the daily-build workflow runs on a
+  // branch that gets PR'd, so this rides along in the same PR as the tool.
+  execSync(`git add ${IDEAS_PATH} && git commit -m "Mark idea ${id} built"`, {
+    stdio: "inherit",
   });
 }
 
 // ---------- step 1: idea -> build brief ----------
 
-async function draftBrief(idea: IdeaRow): Promise<string> {
+async function draftBrief(idea: Idea): Promise<string> {
   const houseStyle = readFileSync("prompts/house-style.md", "utf-8");
   const msg = await anthropic.messages.create({
     model: "claude-sonnet-5",
@@ -161,8 +161,6 @@ async function announce(slug: string, liveUrl: string) {
   });
   const text = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("\n");
   console.log(text);
-  // TODO: also write `text` into the sheet's twitter_draft / linkedin_draft
-  // columns if you want it there instead of just in the terminal.
 }
 
 // ---------- entry point ----------
@@ -174,13 +172,13 @@ async function main() {
   if (mode === "build") {
     const idea = await getNextIdea();
     if (!idea) {
-      console.log("No un-built ideas left in the sheet.");
+      console.log("No un-built ideas left in ideas.json.");
       return;
     }
     const brief = await draftBrief(idea);
     const slug = idea.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-");
     const prUrl = buildWithClaudeCode(brief, slug);
-    await markBuilt(idea.rowIndex, prUrl);
+    await markBuilt(idea.id, prUrl);
   } else if (mode === "announce") {
     const slug = arg("slug");
     const url = arg("url");

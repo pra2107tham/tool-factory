@@ -1,6 +1,6 @@
 # Tool Factory — architecture
 
-30 days, 30 tiny tools, one pipeline. Every morning a cron job picks the next idea off the sheet, drafts a build brief, and hands it to Claude Code to build. You review, merge, and push it live yourself. Once it's live, you run one command and get draft posts for X and LinkedIn.
+30 days, 30 tiny tools, one pipeline. Every morning a cron job picks the next idea off `ideas.json`, drafts a build brief, and hands it to Claude Code to build. You review, merge, and push it live yourself. Once it's live, you run one command and get draft posts for X and LinkedIn.
 
 ## The one call worth debating: one app, not 30 repos
 
@@ -37,17 +37,17 @@ your-repo/
     └── daily-pipeline.ts         # build + announce
 ```
 
-`lib/tools-registry.ts` drives the homepage index, the sitemap, and the internal cross-links — it's the one file every day's PR has to touch.
+`lib/tools-registry.ts` drives the homepage index, the sitemap, and the internal cross-links — it's the one file every day's PR has to touch. `ideas.json` (repo root) is the idea backlog and status tracker — see the schema below.
 
 ## Loop A — the automated build (runs unattended)
 
 1. **06:30 IST, GitHub Actions cron fires** `daily-build.yml`.
-2. **Pick the next idea.** The script reads the sheet, finds the first row with `built = N`.
+2. **Pick the next idea.** The script reads `ideas.json`, finds the first entry with `built: "N"`.
 3. **Draft a build brief.** A plain Claude API call (not Claude Code) expands the raw idea into: target user, exactly 3 must-have features, exactly 2 explicit non-goals, a slug, 5 target long-tail keywords, a title tag and meta description. The 3-features/2-non-goals constraint is what keeps day 19's tool from quietly growing into a SaaS platform.
 4. **Claude Code builds it.** Runs headless (`claude -p`) on a new branch, reading `prompts/house-style.md` plus today's brief. It adds the route, registers the tool, and has to get `npm run build` passing before it's done — that's a hard requirement in the brief, not a suggestion.
 5. **Opens a PR.** `gh pr create`, with a description of what got built (and a screenshot, if you add the Playwright step below).
 6. **Vercel auto-builds a preview** and comments the URL on the PR. Free, no config beyond connecting the repo once.
-7. The sheet gets `built = Y` and the PR link written back.
+7. `ideas.json` gets `built: "Y"` and the PR link written back, committed straight into the same branch/PR.
 
 **A worthwhile add-on:** a Playwright screenshot step (desktop + mobile width) attached to the PR description. You already know Playwright from the Nomura validation agent — same idea, just pointed at localhost instead of a trading UI. It means you can often approve from the PR description alone, without opening the preview link first.
 
@@ -60,27 +60,29 @@ your-repo/
    ```
    npx tsx scripts/daily-pipeline.ts announce --slug=file-size-reducer --url=https://yourdomain.com/tools/file-size-reducer
    ```
-   Claude reads `prompts/social-copy.md` and drafts an X post and a LinkedIn post. They land in the sheet and print to your terminal — you copy, tweak, post.
+   Claude reads `prompts/social-copy.md` and drafts an X post and a LinkedIn post. They print to your terminal — you copy, tweak, post.
 
-## Sheet schema
+## `ideas.json` schema
 
-| column | example | who writes it |
+One JSON array in the repo root, one object per idea — no Google Sheet, no service account to provision or share. A file already in the repo does the same job a spreadsheet would here: a list with a status flag.
+
+| field | example | who writes it |
 |---|---|---|
 | `id` | 1 | you, when seeding |
 | `title` | File Size Reducer | you |
-| `one_liner` | Drop any file, get 3 smaller versions instantly | you |
+| `oneLiner` | Drop any file, get 3 smaller versions instantly | you |
 | `notes` | (competitor links, constraints) | you, optional |
-| `built` | Y / N | pipeline, after PR opens |
-| `pr_url` | | pipeline |
-| `merged` | Y / N | you (or a webhook later) |
-| `deployed` | Y / N | you |
-| `live_url` | | you |
-| `shipped_social` | Y / N | pipeline, after announce |
-| `date_built` / `date_shipped` | | pipeline |
+| `built` | "Y" / "N" | pipeline, after PR opens |
+| `prUrl` | | pipeline |
+| `merged` | "Y" / "N" | you (or a webhook later) |
+| `deployed` | "Y" / "N" | you |
+| `liveUrl` | | you |
+| `shippedSocial` | "Y" / "N" | pipeline, after announce |
+| `dateBuilt` / `dateShipped` | | pipeline |
 
 ## Secrets
 
-`ANTHROPIC_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_KEY` + `SHEET_ID` (share the sheet with the service account's email), and the default `GITHUB_TOKEN` — no PAT needed, because of the one-repo decision above.
+`ANTHROPIC_API_KEY` and the default `GITHUB_TOKEN` — no PAT needed, because of the one-repo decision above. That's it; ideas living in the repo means there's no service account or sheet-sharing to set up.
 
 ## Safety limits (worth stealing from your own job-agent)
 
@@ -105,15 +107,14 @@ For actual 30-day traffic, distribution is doing the work: your X/LinkedIn posts
 - [ ] `app/sitemap.ts` + `app/robots.ts`
 - [ ] Push to GitHub, connect the repo to Vercel, connect the domain
 - [ ] Decide: auto-promote on merge, or a separate manual promote step (see Loop B)
-- [ ] Create the Google Sheet from the schema above, share it with the service account email
-- [ ] Add the three secrets
+- [ ] Add the `ANTHROPIC_API_KEY` secret
 - [ ] Drop in `daily-build.yml`, `daily-pipeline.ts`, and the two prompt files
-- [ ] Seed all 30 rows
+- [ ] Seed all 30 entries in `ideas.json`
 - [ ] Run the pipeline by hand once before you trust the cron with it
 
 ## What I'd build next
 
-- A webhook on PR merge that flips `merged = Y` automatically, so the sheet never drifts from GitHub's actual state.
+- A webhook on PR merge that flips `merged: "Y"` in `ideas.json` automatically, so it never drifts from GitHub's actual state.
 - Re-invoking Claude Code on your PR review comments, so "fix the mobile layout" becomes a second commit instead of a manual edit.
 - The Playwright screenshot step mentioned above.
 - Auto-posting via Zapier once you trust the drafts enough to skip the copy-paste — you're already connected to Zapier.
