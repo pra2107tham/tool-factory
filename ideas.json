@@ -18,13 +18,13 @@
     "title": "PDF Merger",
     "oneLiner": "Combine multiple PDFs into one, in the order you drag them.",
     "notes": "",
-    "built": "N",
-    "prUrl": "",
+    "built": "Y",
+    "prUrl": "https://github.com/pra2107tham/tool-factory/pull/2",
     "merged": "N",
     "deployed": "N",
     "liveUrl": "",
     "shippedSocial": "N",
-    "dateBuilt": "",
+    "dateBuilt": "2026-08-28",
     "dateShipped": ""
   },
   {
