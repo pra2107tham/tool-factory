@@ -17,7 +17,15 @@ export const tools: Tool[] = [
     oneLiner: "Drop an image, get three smaller versions instantly.",
     day: 1,
     live: true,
-    relatedSlugs: [], // first tool shipped — nothing to cross-link to yet
+    relatedSlugs: ["pdf-merger"],
+  },
+  {
+    slug: "pdf-merger",
+    title: "PDF Merger",
+    oneLiner: "Combine multiple PDFs into one, in the order you drag them.",
+    day: 2,
+    live: true,
+    relatedSlugs: ["file-size-reducer"],
   },
 ];
 
