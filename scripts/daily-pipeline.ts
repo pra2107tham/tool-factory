@@ -30,7 +30,11 @@ function askClaude(prompt: string, opts: { allowedTools?: string; maxTurns?: num
     "-p", prompt,
     "--output-format", "json",
     "--effort", "high",
-    "--max-turns", String(opts.maxTurns ?? 1),
+    // 1 isn't enough even for a plain text answer: the CLI can spend a turn
+    // on an internal advisor step before the real answer turn, so a hard
+    // cap of 1 starves it (max_turns error, no result). 3 leaves room for
+    // that plus retries while still failing fast on a genuine runaway.
+    "--max-turns", String(opts.maxTurns ?? 3),
   ];
   // Text-only calls (drafting a brief, drafting social copy) get --tools ""
   // so it can't reach for a tool and burn a turn deciding not to. Only the
