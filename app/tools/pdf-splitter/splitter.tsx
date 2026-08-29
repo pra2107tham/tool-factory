@@ -122,13 +122,11 @@ export function Splitter() {
   // Clicking a thumbnail and typing a range both write to `selected`; the text
   // box is regenerated from it unless the user is mid-keystroke in the box.
   const toggle = (index: number) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
-      setRangeText(formatRanges(next));
-      return next;
-    });
+    const next = new Set(selected);
+    if (next.has(index)) next.delete(index);
+    else next.add(index);
+    setSelected(next);
+    setRangeText(formatRanges(next));
   };
 
   const onRangeChange = (value: string) => {
