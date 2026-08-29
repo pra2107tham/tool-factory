@@ -17,7 +17,7 @@ export const tools: Tool[] = [
     oneLiner: "Drop an image, get three smaller versions instantly.",
     day: 1,
     live: true,
-    relatedSlugs: ["pdf-merger"],
+    relatedSlugs: ["pdf-merger", "pdf-splitter"],
   },
   {
     slug: "pdf-merger",
@@ -25,7 +25,15 @@ export const tools: Tool[] = [
     oneLiner: "Combine multiple PDFs into one, in the order you drag them.",
     day: 2,
     live: true,
-    relatedSlugs: ["file-size-reducer"],
+    relatedSlugs: ["pdf-splitter", "file-size-reducer"],
+  },
+  {
+    slug: "pdf-splitter",
+    title: "PDF Splitter",
+    oneLiner: "Pull the pages you need out of a PDF into a new file.",
+    day: 3,
+    live: true,
+    relatedSlugs: ["pdf-merger", "file-size-reducer"],
   },
 ];
 
