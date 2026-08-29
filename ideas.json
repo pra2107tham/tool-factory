@@ -32,13 +32,13 @@
     "title": "PDF Splitter",
     "oneLiner": "Pull specific pages out of a PDF into their own file.",
     "notes": "",
-    "built": "N",
-    "prUrl": "",
+    "built": "Y",
+    "prUrl": "https://github.com/pra2107tham/tool-factory/pull/3",
     "merged": "N",
     "deployed": "N",
     "liveUrl": "",
     "shippedSocial": "N",
-    "dateBuilt": "",
+    "dateBuilt": "2026-08-29",
     "dateShipped": ""
   },
   {
