@@ -35,6 +35,14 @@ export const tools: Tool[] = [
     live: true,
     relatedSlugs: ["pdf-merger", "file-size-reducer"],
   },
+  {
+    slug: "background-remover",
+    title: "Background Remover",
+    oneLiner: "Drop a photo, get the subject cut out as a transparent PNG.",
+    day: 4,
+    live: true,
+    relatedSlugs: ["file-size-reducer", "pdf-merger", "pdf-splitter"],
+  },
 ];
 
 export const TOTAL_DAYS = 30;
