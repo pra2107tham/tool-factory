@@ -111,7 +111,10 @@ async function markBuilt(id: number, prUrl: string) {
   writeIdeas(ideas);
   // Commit the status update directly — the daily-build workflow runs on a
   // branch that gets PR'd, so this rides along in the same PR as the tool.
-  execSync(`git add ${IDEAS_PATH} && git commit -m "Mark idea ${id} built"`, {
+  // This commit happens after buildWithClaudeCode's push+PR-create, so it
+  // needs its own push or it never reaches the PR (bit us for ideas 2 and 3:
+  // main kept showing built=N for tools that were already merged).
+  execSync(`git add ${IDEAS_PATH} && git commit -m "Mark idea ${id} built" && git push`, {
     stdio: "inherit",
   });
 }
