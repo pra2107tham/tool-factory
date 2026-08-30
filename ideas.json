@@ -46,13 +46,13 @@
     "title": "Background Remover",
     "oneLiner": "Strip the background off a photo in one click, no upload.",
     "notes": "",
-    "built": "N",
-    "prUrl": "",
+    "built": "Y",
+    "prUrl": "https://github.com/pra2107tham/tool-factory/pull/4",
     "merged": "N",
     "deployed": "N",
     "liveUrl": "",
     "shippedSocial": "N",
-    "dateBuilt": "",
+    "dateBuilt": "2026-08-30",
     "dateShipped": ""
   },
   {
