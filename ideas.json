@@ -60,13 +60,13 @@
     "title": "Image Format Converter",
     "oneLiner": "Convert between PNG, JPG, WebP, and AVIF in your browser.",
     "notes": "",
-    "built": "N",
-    "prUrl": "",
+    "built": "Y",
+    "prUrl": "https://github.com/pra2107tham/tool-factory/pull/5",
     "merged": "N",
     "deployed": "N",
     "liveUrl": "",
     "shippedSocial": "N",
-    "dateBuilt": "",
+    "dateBuilt": "2026-08-31",
     "dateShipped": ""
   },
   {
