@@ -43,6 +43,14 @@ export const tools: Tool[] = [
     live: true,
     relatedSlugs: ["file-size-reducer", "pdf-merger", "pdf-splitter"],
   },
+  {
+    slug: "image-format-converter",
+    title: "Image Format Converter",
+    oneLiner: "Convert images between PNG, JPG, WebP, and AVIF in your browser.",
+    day: 5,
+    live: true,
+    relatedSlugs: ["background-remover", "file-size-reducer", "pdf-merger"],
+  },
 ];
 
 export const TOTAL_DAYS = 30;
