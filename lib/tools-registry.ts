@@ -51,6 +51,14 @@ export const tools: Tool[] = [
     live: true,
     relatedSlugs: ["background-remover", "file-size-reducer", "pdf-merger"],
   },
+  {
+    slug: "qr-code-generator",
+    title: "QR Code Generator",
+    oneLiner: "Turn any link or text into a PNG or SVG QR code that never expires.",
+    day: 6,
+    live: true,
+    relatedSlugs: ["image-format-converter", "file-size-reducer", "background-remover"],
+  },
 ];
 
 export const TOTAL_DAYS = 30;
