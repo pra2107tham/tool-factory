@@ -74,13 +74,13 @@
     "title": "QR Code Generator",
     "oneLiner": "Turn any link or text into a downloadable QR code.",
     "notes": "",
-    "built": "N",
-    "prUrl": "",
+    "built": "Y",
+    "prUrl": "https://github.com/pra2107tham/tool-factory/pull/6",
     "merged": "N",
     "deployed": "N",
     "liveUrl": "",
     "shippedSocial": "N",
-    "dateBuilt": "",
+    "dateBuilt": "2026-09-01",
     "dateShipped": ""
   },
   {
