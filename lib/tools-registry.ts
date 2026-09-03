@@ -59,6 +59,14 @@ export const tools: Tool[] = [
     live: true,
     relatedSlugs: ["image-format-converter", "file-size-reducer", "background-remover"],
   },
+  {
+    slug: "word-counter",
+    title: "Word Counter",
+    oneLiner: "Live word, character, and reading-time counts as you type.",
+    day: 7,
+    live: true,
+    relatedSlugs: ["qr-code-generator", "pdf-merger", "image-format-converter"],
+  },
 ];
 
 export const TOTAL_DAYS = 30;
