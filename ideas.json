@@ -102,13 +102,13 @@
     "title": "JSON Formatter",
     "oneLiner": "Paste messy JSON, get it validated and pretty-printed.",
     "notes": "",
-    "built": "N",
-    "prUrl": "",
+    "built": "Y",
+    "prUrl": "https://github.com/pra2107tham/tool-factory/pull/8",
     "merged": "N",
     "deployed": "N",
     "liveUrl": "",
     "shippedSocial": "N",
-    "dateBuilt": "",
+    "dateBuilt": "2026-09-03",
     "dateShipped": ""
   },
   {
