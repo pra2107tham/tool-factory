@@ -67,6 +67,14 @@ export const tools: Tool[] = [
     live: true,
     relatedSlugs: ["qr-code-generator", "pdf-merger", "image-format-converter"],
   },
+  {
+    slug: "json-formatter",
+    title: "JSON Formatter",
+    oneLiner: "Pretty-print or minify JSON, with the exact line and column of any error.",
+    day: 8,
+    live: true,
+    relatedSlugs: ["word-counter", "qr-code-generator", "file-size-reducer"],
+  },
 ];
 
 export const TOTAL_DAYS = 30;
