@@ -140,7 +140,13 @@ under 160 characters. Keep it tight — the whole point is this ships today.`);
 
 function buildWithClaudeCode(brief: string, slug: string): string {
   const branch = `tool/${slug}`;
-  execSync(`git checkout -b ${branch}`, { stdio: "inherit" });
+  // Always branch from a fresh main — this clone is persistent across cron
+  // runs, and prior days' branches (PR still open, unmerged) stay checked
+  // out otherwise. Without this, each new branch stacks on yesterday's
+  // unmerged branch instead of main, so the PR ships every prior day's
+  // unmerged tool too (bit us for day 8: json-formatter branched off the
+  // still-open word-counter branch).
+  execSync(`git checkout main && git pull && git checkout -b ${branch}`, { stdio: "inherit" });
 
   const houseStyle = readFileSync("prompts/house-style.md", "utf-8");
   const prompt = `${houseStyle}
